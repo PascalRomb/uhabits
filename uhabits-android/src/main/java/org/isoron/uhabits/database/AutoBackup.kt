@@ -34,26 +34,32 @@ class AutoBackup(private val context: Context) {
 
     //FIXME This works only because AutoBackup is reinstantiated everytime
     val preferences: Preferences = ( context.applicationContext as HabitsApplication).component.preferences
-    val backupDir: DocumentFile = DocumentFile.fromTreeUri(context, preferences.backupPath.toUri())!!
     val backupFileNameTemplate = "Loop Habits Backup %s.db"
     val backupDateFormat: SimpleDateFormat = getBackupDateFormat()
 
     fun run(keep: Int = 5, backupEveryMs: Long = DateUtils.DAY_LENGTH) {
+        if(preferences.backupPath.isBlank()) {
+            Log.i("AutoBackup", "Will not execute auto backup because Backup Path is not selected")
+            return
+        }
+        val backupDir: DocumentFile = DocumentFile.fromTreeUri(context, preferences.backupPath.toUri())!!
+
+
         Log.i("AutoBackup", "Starting automatic backups inside ${backupDir.uri}...")
 
-        val backupFiles = listBackupFilesByDescendingTimestamp()
+        val backupFiles = listBackupFilesByDescendingTimestamp(backupDir)
         removeOldestIfAny(backupFiles, keep)
 
         val newestTimestamp = backupFiles.getOrNull(0)?.lastModified() ?: 0L
         val nowTimestamp = DateUtils.getLocalTime()
 
         if (nowTimestamp - newestTimestamp > backupEveryMs) {
-            executeBackups(nowTimestamp)
+            executeBackups(backupDir, nowTimestamp)
         } else {
             Log.i("AutoBackup", "Fresh backup found (timestamp=$newestTimestamp)")
         }
     }
-    private fun executeBackups(nowTimestamp: Long) {
+    private fun executeBackups(backupDir: DocumentFile, nowTimestamp: Long) {
         val parsedDate = backupDateFormat.format(nowTimestamp)
         val datedFilename = backupFileNameTemplate.format(parsedDate)
         DatabaseUtils.saveDatabaseCopy(context, backupDir, datedFilename)
@@ -62,7 +68,7 @@ class AutoBackup(private val context: Context) {
         DatabaseUtils.saveDatabaseCopy(context, backupDir, latestFilename)
     }
 
-    private fun listBackupFilesByDescendingTimestamp(): Array<DocumentFile> {
+    private fun listBackupFilesByDescendingTimestamp(backupDir: DocumentFile): Array<DocumentFile> {
         val backupFiles: Array<DocumentFile> = backupDir.listFiles()
         backupFiles.sortByDescending { it.lastModified() }
         return backupFiles

@@ -199,9 +199,14 @@ class ListHabitsScreen
     }
     fun onBackupPathSelected(resultCode: Int, data: Intent?) {
         if (data == null) return
+        if (data.data == null) return
         if (resultCode != Activity.RESULT_OK) return
 
-        preferences.backupPath = data.data?.toString() ?: return
+        val uri = data.data
+
+        val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        context.contentResolver.takePersistableUriPermission(uri!!, takeFlags)
+        preferences.backupPath = uri.toString()
     }
 
 

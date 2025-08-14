@@ -189,7 +189,7 @@ open class Preferences(private val storage: Storage) {
     }
 
     var backupPath: String
-        get() = storage.getString("backupPath", "changeMe") //TODO
+        get() = storage.getString("backupPath", "")
         set(backupPathString) {
             storage.putString("backupPath", backupPathString)
         }
