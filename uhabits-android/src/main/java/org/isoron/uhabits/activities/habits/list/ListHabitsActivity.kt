@@ -83,11 +83,9 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         super.onCreate(savedInstanceState)
 
         appComponent = (applicationContext as HabitsApplication).component
-        component = DaggerHabitsActivityComponent
-            .builder()
+        component = DaggerHabitsActivityComponent.builder()
             .activityContextModule(ActivityContextModule(this))
-            .habitsApplicationComponent(appComponent)
-            .build()
+            .habitsApplicationComponent(appComponent).build()
         component.themeSwitcher.apply()
 
         prefs = appComponent.preferences
@@ -140,7 +138,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
 
         taskRunner.run {
             try {
-                AutoBackup(this@ListHabitsActivity).run(backupEveryMs = 4L) //TODO rollback
+                AutoBackup(this@ListHabitsActivity).run(backupEveryMs = 4L) // TODO rollback
                 appComponent.widgetUpdater.updateWidgets()
             } catch (e: Exception) {
                 Log.e("ListHabitActivity", "TaskRunner failed", e)

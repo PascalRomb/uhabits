@@ -32,18 +32,17 @@ import java.text.SimpleDateFormat
 
 class AutoBackup(private val context: Context) {
 
-    //FIXME This works only because AutoBackup is reinstantiated everytime
-    val preferences: Preferences = ( context.applicationContext as HabitsApplication).component.preferences
+    // FIXME This works only because AutoBackup is reinstantiated everytime
+    val preferences: Preferences = (context.applicationContext as HabitsApplication).component.preferences
     val backupFileNameTemplate = "Loop Habits Backup %s.db"
     val backupDateFormat: SimpleDateFormat = getBackupDateFormat()
 
     fun run(keep: Int = 5, backupEveryMs: Long = DateUtils.DAY_LENGTH) {
-        if(preferences.backupPath.isBlank()) {
+        if (preferences.backupPath.isBlank()) {
             Log.i("AutoBackup", "Will not execute auto backup because Backup Path is not selected")
             return
         }
         val backupDir: DocumentFile = DocumentFile.fromTreeUri(context, preferences.backupPath.toUri())!!
-
 
         Log.i("AutoBackup", "Starting automatic backups inside ${backupDir.uri}...")
 

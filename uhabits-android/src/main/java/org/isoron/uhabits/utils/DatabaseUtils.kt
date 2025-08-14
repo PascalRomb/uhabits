@@ -31,7 +31,6 @@ import org.isoron.uhabits.core.utils.DateUtils.Companion.getLocalTime
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.Optional
 
 object DatabaseUtils {
     private var opener: HabitsDatabaseOpener? = null

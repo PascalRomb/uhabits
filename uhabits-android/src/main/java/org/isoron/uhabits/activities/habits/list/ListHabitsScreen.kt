@@ -89,6 +89,7 @@ const val REQUEST_OPEN_DOCUMENT = 106
 const val REQUEST_SETTINGS = 107
 const val REQUEST_BACKUP_PATH_DOCUMENT_TREE = 108
 const val RESULT_BACKUP_PATH_SELECTION = 109
+
 @ActivityScope
 class ListHabitsScreen
 @Inject constructor(
@@ -208,7 +209,6 @@ class ListHabitsScreen
         context.contentResolver.takePersistableUriPermission(uri!!, takeFlags)
         preferences.backupPath = uri.toString()
     }
-
 
     fun showImportScreen() {
         val intent = intentFactory.openDocument()
