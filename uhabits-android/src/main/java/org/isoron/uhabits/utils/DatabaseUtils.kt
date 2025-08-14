@@ -77,9 +77,10 @@ object DatabaseUtils {
         Log.i("DatabaseUtils", "Writing to SAF directory: $filename")
         val db = getDatabaseFile(context)
 
-        val destFile: DocumentFile = Optional
-            .ofNullable(dir.findFile(filename))
-            .orElse(dir.createFile("application/octet-stream", filename))
+        val existingFile = dir.findFile(filename)
+        val destFile = existingFile?.takeIf { it.exists() }
+            ?: dir.createFile("application/octet-stream", filename)
+            ?: throw IOException("Unable to create file: $filename")
 
         return db.inputStream().copyTo(context, destFile)
     }

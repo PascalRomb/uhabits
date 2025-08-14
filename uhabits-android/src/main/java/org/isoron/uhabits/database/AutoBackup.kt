@@ -75,7 +75,7 @@ class AutoBackup(private val context: Context) {
     }
 
     private fun removeOldestIfAny(backupFiles: Array<DocumentFile>, keep: Int) {
-        Log.d("AutoBackup", "Removing oldest than first $keep files")
+        Log.d("AutoBackup", "Removing oldest than the newest $keep files")
         backupFiles.drop(keep).forEach { it.delete() }
     }
 }
