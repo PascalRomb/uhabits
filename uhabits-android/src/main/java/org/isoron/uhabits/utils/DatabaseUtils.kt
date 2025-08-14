@@ -21,6 +21,7 @@ package org.isoron.uhabits.utils
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import androidx.documentfile.provider.DocumentFile
 import org.isoron.uhabits.HabitsApplication.Companion.isTestMode
 import org.isoron.uhabits.HabitsDatabaseOpener
 import org.isoron.uhabits.core.DATABASE_FILENAME
@@ -30,6 +31,7 @@ import org.isoron.uhabits.core.utils.DateUtils.Companion.getLocalTime
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
+import java.util.Optional
 
 object DatabaseUtils {
     private var opener: HabitsDatabaseOpener? = null
@@ -67,6 +69,19 @@ object DatabaseUtils {
         val dbCopy = File(filename)
         db.copyTo(dbCopy)
         return dbCopy.absolutePath
+    }
+
+    @JvmStatic
+    @Throws(IOException::class)
+    fun saveDatabaseCopy(context: Context, dir: DocumentFile, filename: String): String {
+        Log.i("DatabaseUtils", "Writing to SAF directory: $filename")
+        val db = getDatabaseFile(context)
+
+        val destFile: DocumentFile = Optional
+            .ofNullable(dir.findFile(filename))
+            .orElse(dir.createFile("application/octet-stream", filename))
+
+        return db.inputStream().copyTo(context, destFile)
     }
 
     fun openDatabase(): SQLiteDatabase {

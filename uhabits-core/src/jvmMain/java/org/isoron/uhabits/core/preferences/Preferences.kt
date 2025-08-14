@@ -188,6 +188,12 @@ open class Preferences(private val storage: Storage) {
         storage.putLong("last_hint_timestamp", timestamp.unixTime)
     }
 
+    var backupPath: String
+        get() = storage.getString("backupPath", "changeMe") //TODO
+        set(backupPathString) {
+            storage.putString("backupPath", backupPathString)
+        }
+
     var lastAppVersion: Int
         get() = storage.getInt("last_version", 0)
         set(version) {

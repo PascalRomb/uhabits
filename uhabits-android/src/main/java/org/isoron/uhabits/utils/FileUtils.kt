@@ -18,14 +18,23 @@
  */
 package org.isoron.uhabits.utils
 
+import android.content.Context
 import android.os.Environment
 import android.util.Log
+import androidx.documentfile.provider.DocumentFile
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
+fun FileInputStream.copyTo(context: Context, dst: DocumentFile): String {
+    val dstUri = dst.uri
+    context.contentResolver.openOutputStream(dstUri).use { outputStream ->
+        this.copyTo(outputStream!!)
+    }
+    return dstUri.toString()
+}
 fun File.copyTo(dst: File) {
     val inStream = FileInputStream(this)
     val outStream = FileOutputStream(dst)

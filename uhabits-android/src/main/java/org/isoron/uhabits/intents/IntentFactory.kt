@@ -37,6 +37,9 @@ class IntentFactory
     fun helpTranslate(context: Context) =
         buildViewIntent(context.getString(R.string.translateURL))
 
+
+    fun openDocumentTree() = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+
     fun openDocument() = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
         addCategory(Intent.CATEGORY_OPENABLE)
         type = "*/*"

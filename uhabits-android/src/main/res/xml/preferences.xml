@@ -123,6 +123,12 @@
                 android:summary="@string/export_full_backup_summary"
                 android:title="@string/export_full_backup"
                 app:iconSpaceReserved="false" />
+        <!--FIXME change this-->
+        <Preference
+            android:key="backupPathSelection"
+            android:summary="Something magic here"
+            android:title="MagicTitle"
+            app:iconSpaceReserved="false" />
 
         <Preference
                 android:key="exportCSV"

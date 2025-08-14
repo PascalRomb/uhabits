@@ -140,7 +140,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
 
         taskRunner.run {
             try {
-                AutoBackup(this@ListHabitsActivity).run()
+                AutoBackup(this@ListHabitsActivity).run(backupEveryMs = 4L) //TODO rollback
                 appComponent.widgetUpdater.updateWidgets()
             } catch (e: Exception) {
                 Log.e("ListHabitActivity", "TaskRunner failed", e)

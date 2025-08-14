@@ -87,7 +87,8 @@ const val RESULT_BUG_REPORT = 104
 const val RESULT_REPAIR_DB = 105
 const val REQUEST_OPEN_DOCUMENT = 106
 const val REQUEST_SETTINGS = 107
-
+const val REQUEST_BACKUP_PATH_DOCUMENT_TREE = 108
+const val RESULT_BACKUP_PATH_SELECTION = 109
 @ActivityScope
 class ListHabitsScreen
 @Inject constructor(
@@ -127,6 +128,7 @@ class ListHabitsScreen
         when (requestCode) {
             REQUEST_OPEN_DOCUMENT -> onOpenDocumentResult(resultCode, data)
             REQUEST_SETTINGS -> onSettingsResult(resultCode)
+            REQUEST_BACKUP_PATH_DOCUMENT_TREE -> onBackupPathSelected(resultCode, data)
         }
     }
 
@@ -152,6 +154,8 @@ class ListHabitsScreen
             RESULT_EXPORT_DB -> onExportDB()
             RESULT_BUG_REPORT -> behavior.get().onSendBugReport()
             RESULT_REPAIR_DB -> behavior.get().onRepairDB()
+
+            RESULT_BACKUP_PATH_SELECTION -> onBackupPathSelection()
         }
     }
 
@@ -188,6 +192,18 @@ class ListHabitsScreen
         val intent = intentFactory.startShowHabitActivity(activity, h)
         activity.startActivity(intent)
     }
+
+    fun onBackupPathSelection() {
+        val intent = intentFactory.openDocumentTree()
+        activity.startActivityForResult(intent, REQUEST_BACKUP_PATH_DOCUMENT_TREE)
+    }
+    fun onBackupPathSelected(resultCode: Int, data: Intent?) {
+        if (data == null) return
+        if (resultCode != Activity.RESULT_OK) return
+
+        preferences.backupPath = data.data?.toString() ?: return
+    }
+
 
     fun showImportScreen() {
         val intent = intentFactory.openDocument()

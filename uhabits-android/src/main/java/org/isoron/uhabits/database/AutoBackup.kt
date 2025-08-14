@@ -21,44 +21,55 @@ package org.isoron.uhabits.database
 
 import android.content.Context
 import android.util.Log
-import org.isoron.uhabits.AndroidDirFinder
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
+import org.isoron.uhabits.HabitsApplication
+import org.isoron.uhabits.core.preferences.Preferences
+import org.isoron.uhabits.core.utils.DateFormats.Companion.getBackupDateFormat
 import org.isoron.uhabits.core.utils.DateUtils
 import org.isoron.uhabits.utils.DatabaseUtils
-import java.io.File
+import java.text.SimpleDateFormat
 
 class AutoBackup(private val context: Context) {
 
-    private val basedir = AndroidDirFinder(context).getFilesDir("Backups")!!
+    //FIXME This works only because AutoBackup is reinstantiated everytime
+    val preferences: Preferences = ( context.applicationContext as HabitsApplication).component.preferences
+    val backupDir: DocumentFile = DocumentFile.fromTreeUri(context, preferences.backupPath.toUri())!!
+    val backupFileNameTemplate = "Loop Habits Backup %s.db"
+    val backupDateFormat: SimpleDateFormat = getBackupDateFormat()
 
-    fun run(keep: Int = 5) {
-        Log.i("AutoBackup", "Starting automatic backups...")
-        val files = listBackupFiles()
-        var newestTimestamp = 0L
-        if (files.isNotEmpty()) {
-            newestTimestamp = files.last().lastModified()
-        }
-        val now = DateUtils.getLocalTime()
-        removeOldest(files, keep)
-        if (now - newestTimestamp > DateUtils.DAY_LENGTH) {
-            DatabaseUtils.saveDatabaseCopy(context, basedir)
+    fun run(keep: Int = 5, backupEveryMs: Long = DateUtils.DAY_LENGTH) {
+        Log.i("AutoBackup", "Starting automatic backups inside ${backupDir.uri}...")
+
+        val backupFiles = listBackupFilesByDescendingTimestamp()
+        removeOldestIfAny(backupFiles, keep)
+
+        val newestTimestamp = backupFiles.getOrNull(0)?.lastModified() ?: 0L
+        val nowTimestamp = DateUtils.getLocalTime()
+
+        if (nowTimestamp - newestTimestamp > backupEveryMs) {
+            executeBackups(nowTimestamp)
         } else {
             Log.i("AutoBackup", "Fresh backup found (timestamp=$newestTimestamp)")
         }
     }
+    private fun executeBackups(nowTimestamp: Long) {
+        val parsedDate = backupDateFormat.format(nowTimestamp)
+        val datedFilename = backupFileNameTemplate.format(parsedDate)
+        DatabaseUtils.saveDatabaseCopy(context, backupDir, datedFilename)
 
-    private fun removeOldest(files: ArrayList<File>, keep: Int) {
-        files.sortBy { -it.lastModified() }
-        for (k in keep until files.size) {
-            Log.i("AutoBackup", "Removing ${files[k]}")
-            files[k].delete()
-        }
+        val latestFilename = backupFileNameTemplate.format("latest")
+        DatabaseUtils.saveDatabaseCopy(context, backupDir, latestFilename)
     }
 
-    private fun listBackupFiles(): ArrayList<File> {
-        val files = ArrayList<File>()
-        for (path in basedir.list()!!) {
-            files.add(File("${basedir.path}/$path"))
-        }
-        return files
+    private fun listBackupFilesByDescendingTimestamp(): Array<DocumentFile> {
+        val backupFiles: Array<DocumentFile> = backupDir.listFiles()
+        backupFiles.sortByDescending { it.lastModified() }
+        return backupFiles
+    }
+
+    private fun removeOldestIfAny(backupFiles: Array<DocumentFile>, keep: Int) {
+        Log.d("AutoBackup", "Removing oldest than first $keep files")
+        backupFiles.drop(keep).forEach { it.delete() }
     }
 }

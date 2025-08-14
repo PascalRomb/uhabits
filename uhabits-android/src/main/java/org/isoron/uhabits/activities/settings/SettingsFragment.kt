@@ -33,6 +33,7 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
+import org.isoron.uhabits.activities.habits.list.RESULT_BACKUP_PATH_SELECTION
 import org.isoron.uhabits.activities.habits.list.RESULT_BUG_REPORT
 import org.isoron.uhabits.activities.habits.list.RESULT_EXPORT_CSV
 import org.isoron.uhabits.activities.habits.list.RESULT_EXPORT_DB
@@ -77,6 +78,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         setResultOnPreferenceClick("exportDB", RESULT_EXPORT_DB)
         setResultOnPreferenceClick("repairDB", RESULT_REPAIR_DB)
         setResultOnPreferenceClick("bugReport", RESULT_BUG_REPORT)
+        setResultOnPreferenceClick("backupPathSelection", RESULT_BACKUP_PATH_SELECTION)
     }
 
     override fun onCreatePreferences(bundle: Bundle?, s: String?) {
