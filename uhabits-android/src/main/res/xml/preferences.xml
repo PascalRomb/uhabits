@@ -123,11 +123,10 @@
                 android:summary="@string/export_full_backup_summary"
                 android:title="@string/export_full_backup"
                 app:iconSpaceReserved="false" />
-        <!--FIXME change this-->
-        <Preference
+
+        <org.isoron.uhabits.preferences.PathPreference
             android:key="backupPathSelection"
-            android:summary="Something magic here"
-            android:title="MagicTitle"
+            android:title="@string/auto_export_path_selection_title"
             app:iconSpaceReserved="false" />
 
         <Preference
