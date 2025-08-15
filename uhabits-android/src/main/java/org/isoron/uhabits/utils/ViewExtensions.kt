@@ -128,6 +128,7 @@ fun Activity.showSendFileScreen(archiveFilename: String) {
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
     )
+    // TODO Delete file on resume or create temp or cleanup CSV and DB before the export. ???
 }
 
 fun Activity.startActivitySafely(intent: Intent) {
