@@ -34,7 +34,8 @@ class AutoBackup(private val context: Context) {
 
     // FIXME This works only because AutoBackup is reinstantiated everytime
     val preferences: Preferences = (context.applicationContext as HabitsApplication).component.preferences
-    val backupFileNameTemplate = "backup_%s.db"
+    val backupFileName = "loop_habits_tracker_backup_"
+    val backupFullFileNameTemplate = "$backupFileName%s.db"
     val backupDateFormat: SimpleDateFormat = getBackupDateFormat()
 
     fun run(keep: Int = 5, backupEveryMs: Long = DateUtils.DAY_LENGTH) {
@@ -49,31 +50,33 @@ class AutoBackup(private val context: Context) {
         val backupFiles = listBackupFilesByDescendingTimestamp(backupDir)
         removeOldestIfAny(backupFiles, keep)
 
-        val newestTimestamp = backupFiles.getOrNull(0)?.lastModified() ?: 0L
+        val newestBackup =  backupFiles.getOrNull(0)
+        val newestTimestamp = newestBackup?.lastModified() ?: 0L
         val nowTimestamp = DateUtils.getLocalTime()
 
         if (nowTimestamp - newestTimestamp > backupEveryMs) {
             executeBackups(backupDir, nowTimestamp)
         } else {
-            Log.i("AutoBackup", "Fresh backup found (timestamp=$newestTimestamp)")
+            Log.i("AutoBackup", "Fresh backup found: ${newestBackup?.name}")
         }
     }
     private fun executeBackups(backupDir: DocumentFile, nowTimestamp: Long) {
         val parsedDate = backupDateFormat.format(nowTimestamp)
-        val datedFilename = backupFileNameTemplate.format(parsedDate)
+        val datedFilename = backupFullFileNameTemplate.format(parsedDate)
         DatabaseUtils.saveDatabaseCopy(context, backupDir, datedFilename)
 
-        val latestFilename = backupFileNameTemplate.format("latest")
+        val latestFilename = backupFullFileNameTemplate.format("latest")
         DatabaseUtils.saveDatabaseCopy(context, backupDir, latestFilename)
     }
 
-    private fun listBackupFilesByDescendingTimestamp(backupDir: DocumentFile): Array<DocumentFile> {
+    private fun listBackupFilesByDescendingTimestamp(backupDir: DocumentFile): List<DocumentFile> {
         val backupFiles: Array<DocumentFile> = backupDir.listFiles()
-        backupFiles.sortByDescending { it.lastModified() }
         return backupFiles
+            .filter { it.name?.contains(backupFileName) ?: false }
+            .sortedByDescending { it.lastModified() }
     }
 
-    private fun removeOldestIfAny(backupFiles: Array<DocumentFile>, keep: Int) {
+    private fun removeOldestIfAny(backupFiles: List<DocumentFile>, keep: Int) {
         Log.d("AutoBackup", "Removing oldest than the newest $keep files")
         backupFiles.drop(keep).forEach { it.delete() }
     }
