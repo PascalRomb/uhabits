@@ -34,7 +34,7 @@ class AutoBackup(private val context: Context) {
 
     // FIXME This works only because AutoBackup is reinstantiated everytime
     val preferences: Preferences = (context.applicationContext as HabitsApplication).component.preferences
-    val backupFileNameTemplate = "Loop Habits Backup %s.db"
+    val backupFileNameTemplate = "backup_%s.db"
     val backupDateFormat: SimpleDateFormat = getBackupDateFormat()
 
     fun run(keep: Int = 5, backupEveryMs: Long = DateUtils.DAY_LENGTH) {
