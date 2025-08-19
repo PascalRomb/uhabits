@@ -36,7 +36,7 @@ import org.junit.Before
 open class BaseUserInterfaceTest {
     private lateinit var component: HabitsApplicationComponent
     private lateinit var habitList: HabitList
-    private lateinit var prefs: Preferences
+    protected lateinit var prefs: Preferences
     private lateinit var fixtures: HabitFixtures
     private lateinit var cache: HabitCardListCache
 
