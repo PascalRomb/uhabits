@@ -71,6 +71,24 @@ class AutoBackupTest : BaseUserInterfaceTest() {
 
     }
 
+
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testAutoBackup_WhenBackupPathIsNotSelected_NoBackupOccurs_AndThrowExceptionIfTryToAccessDocumentFile() {
+        launchApp()
+        assertBackupPathSelection("", "Tap to choose a folder to enable auto export!")
+
+        //trigger auto backup
+        triggerAutoBackupInDate("2025-08-19 000000")
+
+        //should throw illegalArgumentexception
+        val baseDirPath = prefs.backupPath
+        val baseDirTreeUri = Uri.parse(baseDirPath)
+        DocumentFile.fromTreeUri(ApplicationProvider.getApplicationContext<Context>(), baseDirTreeUri)!!
+    }
+
+
+
     private fun triggerAutoBackupInDate(backupDateString: String) {
         DateUtils.setFixedLocalTime(DateFormats.getBackupDateFormat().parse(backupDateString)?.time)
         clickMenu(SETTINGS)
