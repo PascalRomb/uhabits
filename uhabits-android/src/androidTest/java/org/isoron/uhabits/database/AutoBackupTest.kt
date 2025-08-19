@@ -71,7 +71,53 @@ class AutoBackupTest : BaseUserInterfaceTest() {
 
     }
 
+    @Test
+    fun testAutoBackup_WhenFolderIsNOTEmpty_SelectPathAndExecuteBackupAndRemoveOldOnes() {
+        launchApp()
+        assertBackupPathSelection("", "Tap to choose a folder to enable auto export!")
 
+        backupPathSelection()
+        assertBackupPathSelection("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "Exported backups will be saved inside ->${prefs.backupPath}")
+
+        //get and cleanup backup selected path
+        val baseDirPath = prefs.backupPath
+        val baseDirTreeUri = Uri.parse(baseDirPath)
+        val baseDirDocumentFile = DocumentFile.fromTreeUri(ApplicationProvider.getApplicationContext<Context>(), baseDirTreeUri)!!
+        cleanUpDatabaseFiles(baseDirDocumentFile)
+
+        assertEquals(0, baseDirDocumentFile.listFiles().count())
+
+        //trigger auto backup
+        triggerAutoBackupInDate("2125-08-11 000000")
+        triggerAutoBackupInDate("2125-08-13 000000")
+        triggerAutoBackupInDate("2125-08-15 000000")
+        triggerAutoBackupInDate("2125-08-17 000000")
+        triggerAutoBackupInDate("2125-08-19 000000")
+
+        //assert backup exist
+        assertEquals(6, baseDirDocumentFile.listFiles().count())
+        assertBackupExists(baseDirDocumentFile, "latest")
+        assertBackupExists(baseDirDocumentFile, "2125-08-11 000000")
+        Thread.sleep(1000) //so it is considered older than the others.
+        assertBackupExists(baseDirDocumentFile, "2125-08-13 000000")
+        assertBackupExists(baseDirDocumentFile, "2125-08-15 000000")
+        assertBackupExists(baseDirDocumentFile, "2125-08-17 000000")
+        assertBackupExists(baseDirDocumentFile, "2125-08-19 000000")
+
+        //when add new backup, all previous are deleted
+        triggerAutoBackupInDate("2125-08-21 000000")
+
+        assertEquals(6, baseDirDocumentFile.listFiles().count())
+        assertBackupExists(baseDirDocumentFile, "latest")
+        assertBackupNOTExists(baseDirDocumentFile, "2125-08-11 000000") //not exists anymore
+        assertBackupExists(baseDirDocumentFile, "2125-08-13 000000")
+        assertBackupExists(baseDirDocumentFile, "2125-08-15 000000")
+        assertBackupExists(baseDirDocumentFile, "2125-08-17 000000")
+        assertBackupExists(baseDirDocumentFile, "2125-08-19 000000")
+        assertBackupExists(baseDirDocumentFile, "2125-08-21 000000")
+
+
+    }
 
     @Test(expected = IllegalArgumentException::class)
     fun testAutoBackup_WhenBackupPathIsNotSelected_NoBackupOccurs_AndThrowExceptionIfTryToAccessDocumentFile() {
@@ -98,6 +144,9 @@ class AutoBackupTest : BaseUserInterfaceTest() {
     private fun assertBackupExists(baseDirDocumentFile: DocumentFile, filename: String) {
         assertTrue(baseDirDocumentFile.findFile("${backupFileName}${filename}.db")?.exists()!!)
     }
+    private fun assertBackupNOTExists(baseDirDocumentFile: DocumentFile, filename: String) {
+        assertEquals(null, baseDirDocumentFile.findFile("${backupFileName}${filename}.db"))
+    }
 
     private fun assertBackupPathSelection(backupPathSelection: String, backupPathSelectionActionDescription: String) {
         assertTrue(prefs.backupPath == backupPathSelection)
@@ -111,122 +160,23 @@ class AutoBackupTest : BaseUserInterfaceTest() {
         clickMenu(SETTINGS)
         clickText("Auto export folder selection")
 
-        //TODO move to commonSteps?
-        val useFolderButton = device.findObject(UiSelector().text("USE THIS FOLDER"))
-        if (useFolderButton.exists() && useFolderButton.isEnabled) {
-            useFolderButton.click()
-        }
+        clickButton("USE THIS FOLDER")
+        clickButton("ALLOW")
 
-        val allowButton = device.findObject(UiSelector().text("ALLOW"))
-        if (allowButton.exists() && allowButton.isEnabled) {
-            allowButton.click()
-        }
         device.waitForIdle()
     }
 
-
-/*
-    @Test
-    fun testRun_whenEmptyFolder_executeBackup() {
-        //DateUtils.setFixedLocalTime(40 * DateUtils.DAY_LENGTH)
-        //val basedir = AndroidDirFinder(targetContext).getFilesDir("Backups")!!
-        val baseDirPath = "content://com.android.externalstorage.documents/tree/primary%3ADocuments"
-        val baseDirTreeUri = Uri.parse(baseDirPath)
-        val baseDirDocumentFile = DocumentFile.fromTreeUri(targetContext, baseDirTreeUri)!!
-        prefs.backupPath = baseDirPath
-        assertEquals(0, baseDirDocumentFile.listFiles().count())
-
-        val autoBackup = AutoBackup(targetContext)
-        autoBackup.run(keep = 5)
-
-        assertEquals(2, baseDirDocumentFile.listFiles().count())
-
-
-        //assertEquals(30, baseDirDocumentFile.listFiles().count())
-
-        //for (k in 1..25) assertDoesNotExist("${basedir.path}/$backupFileName-$k.db")
-        //for (k in 26..30) assertExists("${basedir.path}/$backupFileName-$k.db")
-        //assertExists("${basedir.path}/Loop Habits Backup 1970-02-10 000000.db")
-    }*/
-
-    /*
-    @Test
-    fun testRun_whenAlreadyExistingDatabases_cleanUpAndExecute() {
-        DateUtils.setFixedLocalTime(40 * DateUtils.DAY_LENGTH)
-        //val basedir = AndroidDirFinder(targetContext).getFilesDir("Backups")!!
-        val baseDirPath = "content://com.android.externalstorage.documents/tree/primary%3ADocuments"
-        val baseDirTreeUri = Uri.parse(baseDirPath)
-        val baseDirDocumentFile = DocumentFile.fromTreeUri(targetContext, baseDirTreeUri)!!
-        prefs.backupPath = baseDirPath
-
-        cleanUpDatabaseFiles(baseDirDocumentFile)
-        createAlreadyExistingDatabaseFiles(baseDirDocumentFile, 30)
-        assertEquals(30, baseDirDocumentFile.listFiles().count())
-
-        val autoBackup = AutoBackup(targetContext)
-        autoBackup.run(keep = 5)
-
-        //assertEquals(30, baseDirDocumentFile.listFiles().count())
-
-        //for (k in 1..25) assertDoesNotExist("${basedir.path}/$backupFileName-$k.db")
-        //for (k in 26..30) assertExists("${basedir.path}/$backupFileName-$k.db")
-        //assertExists("${basedir.path}/Loop Habits Backup 1970-02-10 000000.db")
+    private fun clickButton(textButton: String) {
+        val button = device.findObject(UiSelector().text(textButton))
+        if (button.exists() && button.isEnabled) {
+            button.click()
+        }
     }
-*/
 
-    /*
-    @Test
-    fun testRun_whenNoPreferenceSet_DoNothing() {
-        DateUtils.setFixedLocalTime(40 * DateUtils.DAY_LENGTH)
-        val basedir = AndroidDirFinder(targetContext).getFilesDir("Backups")!!
-        createTestFiles(basedir, 30)
-
-        val autoBackup = AutoBackup(targetContext)
-        autoBackup.run(keep = 5)
-
-        for (k in 1..30) assertExists("${basedir.path}/$backupFileName-$k.db")
-        //assertExists("${basedir.path}/Loop Habits Backup 1970-02-10 000000.db")
-    }*/
-
-    /*
-    @Test
-    fun testRunWithEmptyDir() {
-        val basedir = AndroidDirFinder(targetContext).getFilesDir("Backups")!!
-        cleanUpDatabaseFiles(basedir)
-        basedir.delete()
-
-        // Should not crash
-        val autoBackup = AutoBackup(targetContext)
-        autoBackup.run()
-    }*/
-    /*
-        private fun assertExists(path: String) {
-            assertTrue("File $path should exist", File(path).exists())
+    private fun cleanUpDatabaseFiles(dir: DocumentFile) {
+        dir.listFiles().forEach { file ->
+            assertTrue(file.delete())
         }
-
-        private fun assertDoesNotExist(path: String) {
-            assertFalse("File $path should not exist", File(path).exists())
-        }
-
-
-        private fun createAlreadyExistingDatabaseFiles(basedir: DocumentFile, nfiles: Int) {
-            for (k in 1..nfiles) {
-                basedir.createFile("application/octet-stream", "${backupFileName}-$k.db")
-            //touch("${basedir.path}/${backupFileName}-$k.db", DateUtils.DAY_LENGTH * k)
-            }
-        }
-
-        private fun touch(path: String, time: Long) {
-            val file = File(path)
-            FileOutputStream(file).close()
-            file.setLastModified(time)
-        }
-
-     */
-        private fun cleanUpDatabaseFiles(dir: DocumentFile) {
-            dir.listFiles().forEach { file ->
-                assertTrue(file.delete())
-            }
-        }
+    }
 
 }
