@@ -50,7 +50,7 @@ class AutoBackup(private val context: Context) {
         val backupFiles = listBackupFilesByDescendingTimestamp(backupDir)
         removeOldestIfAny(backupFiles, keep)
 
-        val newestBackup =  backupFiles.getOrNull(0)
+        val newestBackup = backupFiles.getOrNull(0)
         val newestTimestamp = newestBackup?.lastModified() ?: 0L
         val nowTimestamp = DateUtils.getLocalTime()
 

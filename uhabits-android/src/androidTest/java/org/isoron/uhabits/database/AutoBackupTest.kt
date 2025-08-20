@@ -53,7 +53,7 @@ class AutoBackupTest : BaseUserInterfaceTest() {
         backupPathSelection()
         assertBackupPathSelection("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "Exported backups will be saved inside ->${prefs.backupPath}")
 
-        //get and cleanup backup selected path
+        // get and cleanup backup selected path
         val baseDirPath = prefs.backupPath
         val baseDirTreeUri = Uri.parse(baseDirPath)
         val baseDirDocumentFile = DocumentFile.fromTreeUri(ApplicationProvider.getApplicationContext<Context>(), baseDirTreeUri)!!
@@ -61,14 +61,13 @@ class AutoBackupTest : BaseUserInterfaceTest() {
 
         assertEquals(0, baseDirDocumentFile.listFiles().count())
 
-        //trigger auto backup
+        // trigger auto backup
         triggerAutoBackupInDate("2025-08-19 000000")
 
-        //assert backup exist
+        // assert backup exist
         assertEquals(2, baseDirDocumentFile.listFiles().count())
         assertBackupExists(baseDirDocumentFile, "latest")
         assertBackupExists(baseDirDocumentFile, "2025-08-19 000000")
-
     }
 
     @Test
@@ -79,7 +78,7 @@ class AutoBackupTest : BaseUserInterfaceTest() {
         backupPathSelection()
         assertBackupPathSelection("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "Exported backups will be saved inside ->${prefs.backupPath}")
 
-        //get and cleanup backup selected path
+        // get and cleanup backup selected path
         val baseDirPath = prefs.backupPath
         val baseDirTreeUri = Uri.parse(baseDirPath)
         val baseDirDocumentFile = DocumentFile.fromTreeUri(ApplicationProvider.getApplicationContext<Context>(), baseDirTreeUri)!!
@@ -87,36 +86,34 @@ class AutoBackupTest : BaseUserInterfaceTest() {
 
         assertEquals(0, baseDirDocumentFile.listFiles().count())
 
-        //trigger auto backup
+        // trigger auto backup
         triggerAutoBackupInDate("2125-08-11 000000")
         triggerAutoBackupInDate("2125-08-13 000000")
         triggerAutoBackupInDate("2125-08-15 000000")
         triggerAutoBackupInDate("2125-08-17 000000")
         triggerAutoBackupInDate("2125-08-19 000000")
 
-        //assert backup exist
+        // assert backup exist
         assertEquals(6, baseDirDocumentFile.listFiles().count())
         assertBackupExists(baseDirDocumentFile, "latest")
         assertBackupExists(baseDirDocumentFile, "2125-08-11 000000")
-        Thread.sleep(1000) //so it is considered older than the others.
+        Thread.sleep(1000) // so it is considered older than the others.
         assertBackupExists(baseDirDocumentFile, "2125-08-13 000000")
         assertBackupExists(baseDirDocumentFile, "2125-08-15 000000")
         assertBackupExists(baseDirDocumentFile, "2125-08-17 000000")
         assertBackupExists(baseDirDocumentFile, "2125-08-19 000000")
 
-        //when add new backup, all previous are deleted
+        // when add new backup, all previous are deleted
         triggerAutoBackupInDate("2125-08-21 000000")
 
         assertEquals(6, baseDirDocumentFile.listFiles().count())
         assertBackupExists(baseDirDocumentFile, "latest")
-        assertBackupNOTExists(baseDirDocumentFile, "2125-08-11 000000") //not exists anymore
+        assertBackupNOTExists(baseDirDocumentFile, "2125-08-11 000000") // not exists anymore
         assertBackupExists(baseDirDocumentFile, "2125-08-13 000000")
         assertBackupExists(baseDirDocumentFile, "2125-08-15 000000")
         assertBackupExists(baseDirDocumentFile, "2125-08-17 000000")
         assertBackupExists(baseDirDocumentFile, "2125-08-19 000000")
         assertBackupExists(baseDirDocumentFile, "2125-08-21 000000")
-
-
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -124,16 +121,14 @@ class AutoBackupTest : BaseUserInterfaceTest() {
         launchApp()
         assertBackupPathSelection("", "Tap to choose a folder to enable auto export!")
 
-        //trigger auto backup
+        // trigger auto backup
         triggerAutoBackupInDate("2025-08-19 000000")
 
-        //should throw illegalArgumentexception
+        // should throw illegalArgumentexception
         val baseDirPath = prefs.backupPath
         val baseDirTreeUri = Uri.parse(baseDirPath)
         DocumentFile.fromTreeUri(ApplicationProvider.getApplicationContext<Context>(), baseDirTreeUri)!!
     }
-
-
 
     private fun triggerAutoBackupInDate(backupDateString: String) {
         DateUtils.setFixedLocalTime(DateFormats.getBackupDateFormat().parse(backupDateString)?.time)
@@ -142,10 +137,10 @@ class AutoBackupTest : BaseUserInterfaceTest() {
     }
 
     private fun assertBackupExists(baseDirDocumentFile: DocumentFile, filename: String) {
-        assertTrue(baseDirDocumentFile.findFile("${backupFileName}${filename}.db")?.exists()!!)
+        assertTrue(baseDirDocumentFile.findFile("$backupFileName$filename.db")?.exists()!!)
     }
     private fun assertBackupNOTExists(baseDirDocumentFile: DocumentFile, filename: String) {
-        assertEquals(null, baseDirDocumentFile.findFile("${backupFileName}${filename}.db"))
+        assertEquals(null, baseDirDocumentFile.findFile("$backupFileName$filename.db"))
     }
 
     private fun assertBackupPathSelection(backupPathSelection: String, backupPathSelectionActionDescription: String) {
@@ -178,5 +173,4 @@ class AutoBackupTest : BaseUserInterfaceTest() {
             assertTrue(file.delete())
         }
     }
-
 }
