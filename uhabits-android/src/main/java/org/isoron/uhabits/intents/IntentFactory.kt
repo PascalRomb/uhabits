@@ -22,6 +22,7 @@ package org.isoron.uhabits.intents
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import org.isoron.uhabits.R
 import org.isoron.uhabits.activities.about.AboutActivity
 import org.isoron.uhabits.activities.habits.edit.EditHabitActivity
@@ -37,7 +38,11 @@ class IntentFactory
     fun helpTranslate(context: Context) =
         buildViewIntent(context.getString(R.string.translateURL))
 
-    fun openDocumentTree() = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+    fun openDocumentTree() = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+        val documentFolderUri =
+            "content://com.android.externalstorage.documents/document/primary%3ADocuments".toUri()
+        putExtra("android.provider.extra.INITIAL_URI", documentFolderUri)
+    }
 
     fun openDocument() = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
         addCategory(Intent.CATEGORY_OPENABLE)
