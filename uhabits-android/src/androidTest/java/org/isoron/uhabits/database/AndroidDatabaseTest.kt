@@ -19,12 +19,17 @@
 package org.isoron.uhabits.database
 
 import android.database.sqlite.SQLiteDatabase
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.MediumTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
 import org.isoron.uhabits.BaseAndroidTest
 import org.isoron.uhabits.core.database.Cursor
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
+@MediumTest
 class AndroidDatabaseTest : BaseAndroidTest() {
     private lateinit var db: AndroidDatabase
     override fun setUp() {
@@ -40,7 +45,7 @@ class AndroidDatabaseTest : BaseAndroidTest() {
         db.insert("test", map)
         val c: Cursor = db.query("select * from test")
         c.moveToNext()
-        c.getInt(0)!!
+        assertNull(c.getInt(0))
         assertThat(c.getString(1), equalTo("asd"))
     }
 }
