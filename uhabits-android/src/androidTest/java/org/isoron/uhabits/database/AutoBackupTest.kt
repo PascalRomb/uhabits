@@ -21,6 +21,7 @@ package org.isoron.uhabits.database
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import androidx.documentfile.provider.DocumentFile
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -28,6 +29,7 @@ import androidx.test.filters.LargeTest
 import androidx.test.uiautomator.UiSelector
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
+import org.apache.commons.lang3.StringUtils
 import org.isoron.uhabits.BaseUserInterfaceTest
 import org.isoron.uhabits.acceptance.steps.CommonSteps.clickText
 import org.isoron.uhabits.acceptance.steps.CommonSteps.launchApp
@@ -48,10 +50,10 @@ class AutoBackupTest : BaseUserInterfaceTest() {
     @Test
     fun testAutoBackup_WhenFolderIsEmpty_SelectPathAndExecuteBackup() {
         launchApp()
-        assertBackupPathSelection("", "Tap to choose a folder to enable auto export!")
+        assertBackupPathSelection(true, "Tap to choose a folder to enable auto export!")
 
         backupPathSelection()
-        assertBackupPathSelection("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "Exported backups will be saved inside ->${prefs.backupPath}")
+        assertBackupPathSelection(false, "Exported backups will be saved inside ->${prefs.backupPath}")
 
         // get and cleanup backup selected path
         val baseDirPath = prefs.backupPath
@@ -73,10 +75,10 @@ class AutoBackupTest : BaseUserInterfaceTest() {
     @Test
     fun testAutoBackup_WhenFolderIsNOTEmpty_SelectPathAndExecuteBackupAndRemoveOldOnes() {
         launchApp()
-        assertBackupPathSelection("", "Tap to choose a folder to enable auto export!")
+        assertBackupPathSelection(true, "Tap to choose a folder to enable auto export!")
 
         backupPathSelection()
-        assertBackupPathSelection("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "Exported backups will be saved inside ->${prefs.backupPath}")
+        assertBackupPathSelection(false, "Exported backups will be saved inside ->${prefs.backupPath}")
 
         // get and cleanup backup selected path
         val baseDirPath = prefs.backupPath
@@ -119,7 +121,7 @@ class AutoBackupTest : BaseUserInterfaceTest() {
     @Test(expected = IllegalArgumentException::class)
     fun testAutoBackup_WhenBackupPathIsNotSelected_NoBackupOccurs_AndThrowExceptionIfTryToAccessDocumentFile() {
         launchApp()
-        assertBackupPathSelection("", "Tap to choose a folder to enable auto export!")
+        assertBackupPathSelection(true, "Tap to choose a folder to enable auto export!")
 
         // trigger auto backup
         triggerAutoBackupInDate("2025-08-19 000000")
@@ -143,8 +145,13 @@ class AutoBackupTest : BaseUserInterfaceTest() {
         assertEquals(null, baseDirDocumentFile.findFile("$backupFileName$filename.db"))
     }
 
-    private fun assertBackupPathSelection(backupPathSelection: String, backupPathSelectionActionDescription: String) {
-        assertTrue(prefs.backupPath == backupPathSelection)
+    private fun assertBackupPathSelection(assertBlank: Boolean, backupPathSelectionActionDescription: String) {
+        if (assertBlank) {
+            assertTrue(StringUtils.isBlank(prefs.backupPath))
+        } else {
+            assertTrue(StringUtils.isNotBlank(prefs.backupPath))
+        }
+
         clickMenu(SETTINGS)
         scrollToText("Auto export folder selection")
         assertTrue(device.findObject(UiSelector().text(backupPathSelectionActionDescription)).exists())
@@ -155,8 +162,15 @@ class AutoBackupTest : BaseUserInterfaceTest() {
         clickMenu(SETTINGS)
         clickText("Auto export folder selection")
 
-        clickButton("USE THIS FOLDER")
-        clickButton("ALLOW")
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) { // 28
+            clickButton("SELECT")
+        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) { // 29
+            clickButton("ALLOW ACCESS TO \"DOWNLOADS\"")
+            clickButton("ALLOW")
+        } else {
+            clickButton("USE THIS FOLDER")
+            clickButton("ALLOW")
+        }
 
         device.waitForIdle()
     }
