@@ -32,7 +32,6 @@ import java.text.SimpleDateFormat
 
 class AutoBackup(private val context: Context) {
 
-    // FIXME This works only because AutoBackup is reinstantiated everytime
     val preferences: Preferences = (context.applicationContext as HabitsApplication).component.preferences
     val backupFileName = "loop_habits_tracker_backup_"
     val backupFullFileNameTemplate = "$backupFileName%s.db"
